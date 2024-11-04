@@ -15,6 +15,7 @@ LRELU_SLOPE = 0.1
 
 
 class LayerNorm(nn.Module):
+
     def __init__(self, channels, eps=1e-5):
         super().__init__()
         self.channels = channels
@@ -25,11 +26,12 @@ class LayerNorm(nn.Module):
 
     def forward(self, x):
         x = x.transpose(1, -1)
-        x = F.layer_norm(x, (self.channels,), self.gamma, self.beta, self.eps)
+        x = F.layer_norm(x, (self.channels, ), self.gamma, self.beta, self.eps)
         return x.transpose(1, -1)
 
 
 class ConvReluNorm(nn.Module):
+
     def __init__(
         self,
         in_channels,
@@ -51,10 +53,7 @@ class ConvReluNorm(nn.Module):
         self.conv_layers = nn.ModuleList()
         self.norm_layers = nn.ModuleList()
         self.conv_layers.append(
-            nn.Conv1d(
-                in_channels, hidden_channels, kernel_size, padding=kernel_size // 2
-            )
-        )
+            nn.Conv1d(in_channels, hidden_channels, kernel_size, padding=kernel_size // 2))
         self.norm_layers.append(LayerNorm(hidden_channels))
         self.relu_drop = nn.Sequential(nn.ReLU(), nn.Dropout(p_dropout))
         for _ in range(n_layers - 1):
@@ -64,8 +63,7 @@ class ConvReluNorm(nn.Module):
                     hidden_channels,
                     kernel_size,
                     padding=kernel_size // 2,
-                )
-            )
+                ))
             self.norm_layers.append(LayerNorm(hidden_channels))
         self.proj = nn.Conv1d(hidden_channels, out_channels, 1)
         self.proj.weight.data.zero_()
@@ -109,8 +107,7 @@ class DDSConv(nn.Module):
                     groups=channels,
                     dilation=dilation,
                     padding=padding,
-                )
-            )
+                ))
             self.convs_1x1.append(nn.Conv1d(channels, channels, 1))
             self.norms_1.append(LayerNorm(channels))
             self.norms_2.append(LayerNorm(channels))
@@ -131,6 +128,7 @@ class DDSConv(nn.Module):
 
 
 class WN(torch.nn.Module):
+
     def __init__(
         self,
         hidden_channels,
@@ -140,10 +138,10 @@ class WN(torch.nn.Module):
         gin_channels=0,
         p_dropout=0,
     ):
-        super(WN, self).__init__()
+        super().__init__()
         assert kernel_size % 2 == 1
         self.hidden_channels = hidden_channels
-        self.kernel_size = (kernel_size,)
+        self.kernel_size = (kernel_size, )
         self.dilation_rate = dilation_rate
         self.n_layers = n_layers
         self.gin_channels = gin_channels
@@ -154,9 +152,7 @@ class WN(torch.nn.Module):
         self.drop = nn.Dropout(p_dropout)
 
         if gin_channels != 0:
-            cond_layer = torch.nn.Conv1d(
-                gin_channels, 2 * hidden_channels * n_layers, 1
-            )
+            cond_layer = torch.nn.Conv1d(gin_channels, 2 * hidden_channels * n_layers, 1)
             self.cond_layer = torch.nn.utils.weight_norm(cond_layer, name="weight")
 
         for i in range(n_layers):
@@ -193,7 +189,7 @@ class WN(torch.nn.Module):
             x_in = self.in_layers[i](x)
             if g is not None:
                 cond_offset = i * 2 * self.hidden_channels
-                g_l = g[:, cond_offset : cond_offset + 2 * self.hidden_channels, :]
+                g_l = g[:, cond_offset:cond_offset + 2 * self.hidden_channels, :]
             else:
                 g_l = torch.zeros_like(x_in)
 
@@ -202,9 +198,9 @@ class WN(torch.nn.Module):
 
             res_skip_acts = self.res_skip_layers[i](acts)
             if i < self.n_layers - 1:
-                res_acts = res_skip_acts[:, : self.hidden_channels, :]
+                res_acts = res_skip_acts[:, :self.hidden_channels, :]
                 x = (x + res_acts) * x_mask
-                output = output + res_skip_acts[:, self.hidden_channels :, :]
+                output = output + res_skip_acts[:, self.hidden_channels:, :]
             else:
                 output = output + res_skip_acts
         return output * x_mask
@@ -219,78 +215,69 @@ class WN(torch.nn.Module):
 
 
 class ResBlock1(torch.nn.Module):
+
     def __init__(self, channels, kernel_size=3, dilation=(1, 3, 5)):
-        super(ResBlock1, self).__init__()
-        self.convs1 = nn.ModuleList(
-            [
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=dilation[0],
-                        padding=get_padding(kernel_size, dilation[0]),
-                    )
-                ),
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=dilation[1],
-                        padding=get_padding(kernel_size, dilation[1]),
-                    )
-                ),
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=dilation[2],
-                        padding=get_padding(kernel_size, dilation[2]),
-                    )
-                ),
-            ]
-        )
+        super().__init__()
+        self.convs1 = nn.ModuleList([
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=dilation[0],
+                    padding=get_padding(kernel_size, dilation[0]),
+                )),
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=dilation[1],
+                    padding=get_padding(kernel_size, dilation[1]),
+                )),
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=dilation[2],
+                    padding=get_padding(kernel_size, dilation[2]),
+                )),
+        ])
         self.convs1.apply(init_weights)
 
-        self.convs2 = nn.ModuleList(
-            [
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=1,
-                        padding=get_padding(kernel_size, 1),
-                    )
-                ),
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=1,
-                        padding=get_padding(kernel_size, 1),
-                    )
-                ),
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=1,
-                        padding=get_padding(kernel_size, 1),
-                    )
-                ),
-            ]
-        )
+        self.convs2 = nn.ModuleList([
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=1,
+                    padding=get_padding(kernel_size, 1),
+                )),
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=1,
+                    padding=get_padding(kernel_size, 1),
+                )),
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=1,
+                    padding=get_padding(kernel_size, 1),
+                )),
+        ])
         self.convs2.apply(init_weights)
 
     def forward(self, x, x_mask=None):
@@ -316,32 +303,29 @@ class ResBlock1(torch.nn.Module):
 
 
 class ResBlock2(torch.nn.Module):
+
     def __init__(self, channels, kernel_size=3, dilation=(1, 3)):
-        super(ResBlock2, self).__init__()
-        self.convs = nn.ModuleList(
-            [
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=dilation[0],
-                        padding=get_padding(kernel_size, dilation[0]),
-                    )
-                ),
-                weight_norm(
-                    Conv1d(
-                        channels,
-                        channels,
-                        kernel_size,
-                        1,
-                        dilation=dilation[1],
-                        padding=get_padding(kernel_size, dilation[1]),
-                    )
-                ),
-            ]
-        )
+        super().__init__()
+        self.convs = nn.ModuleList([
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=dilation[0],
+                    padding=get_padding(kernel_size, dilation[0]),
+                )),
+            weight_norm(
+                Conv1d(
+                    channels,
+                    channels,
+                    kernel_size,
+                    1,
+                    dilation=dilation[1],
+                    padding=get_padding(kernel_size, dilation[1]),
+                )),
+        ])
         self.convs.apply(init_weights)
 
     def forward(self, x, x_mask=None):
@@ -361,6 +345,7 @@ class ResBlock2(torch.nn.Module):
 
 
 class Log(nn.Module):
+
     def forward(self, x, x_mask, reverse=False, **kwargs):
         if not reverse:
             y = torch.log(torch.clamp_min(x, 1e-5)) * x_mask
@@ -372,6 +357,7 @@ class Log(nn.Module):
 
 
 class Flip(nn.Module):
+
     def forward(self, x, *args, reverse=False, **kwargs):
         x = torch.flip(x, [1])
         if not reverse:
@@ -382,6 +368,7 @@ class Flip(nn.Module):
 
 
 class ElementwiseAffine(nn.Module):
+
     def __init__(self, channels):
         super().__init__()
         self.channels = channels
@@ -400,6 +387,7 @@ class ElementwiseAffine(nn.Module):
 
 
 class ResidualCouplingLayer(nn.Module):
+
     def __init__(
         self,
         channels,
@@ -457,6 +445,7 @@ class ResidualCouplingLayer(nn.Module):
 
 
 class ConvFlow(nn.Module):
+
     def __init__(
         self,
         in_channels,
@@ -477,9 +466,7 @@ class ConvFlow(nn.Module):
 
         self.pre = nn.Conv1d(self.half_channels, filter_channels, 1)
         self.convs = DDSConv(filter_channels, kernel_size, n_layers, p_dropout=0.0)
-        self.proj = nn.Conv1d(
-            filter_channels, self.half_channels * (num_bins * 3 - 1), 1
-        )
+        self.proj = nn.Conv1d(filter_channels, self.half_channels * (num_bins * 3 - 1), 1)
         self.proj.weight.data.zero_()
         self.proj.bias.data.zero_()
 
@@ -492,11 +479,9 @@ class ConvFlow(nn.Module):
         b, c, t = x0.shape
         h = h.reshape(b, c, -1, t).permute(0, 1, 3, 2)  # [b, cx?, t] -> [b, c, t, ?]
 
-        unnormalized_widths = h[..., : self.num_bins] / math.sqrt(self.filter_channels)
-        unnormalized_heights = h[..., self.num_bins : 2 * self.num_bins] / math.sqrt(
-            self.filter_channels
-        )
-        unnormalized_derivatives = h[..., 2 * self.num_bins :]
+        unnormalized_widths = h[..., :self.num_bins] / math.sqrt(self.filter_channels)
+        unnormalized_heights = h[..., self.num_bins:2 * self.num_bins] / math.sqrt(self.filter_channels)
+        unnormalized_derivatives = h[..., 2 * self.num_bins:]
 
         x1, logabsdet = piecewise_rational_quadratic_transform(
             x1,
@@ -517,6 +502,7 @@ class ConvFlow(nn.Module):
 
 
 class TransformerCouplingLayer(nn.Module):
+
     def __init__(
         self,
         channels,
@@ -551,10 +537,7 @@ class TransformerCouplingLayer(nn.Module):
                 p_dropout,
                 isflow=True,
                 gin_channels=gin_channels,
-            )
-            if wn_sharing_parameter is None
-            else wn_sharing_parameter
-        )
+            ) if wn_sharing_parameter is None else wn_sharing_parameter)
         self.post = nn.Conv1d(hidden_channels, self.half_channels * (2 - mean_only), 1)
         self.post.weight.data.zero_()
         self.post.bias.data.zero_()
