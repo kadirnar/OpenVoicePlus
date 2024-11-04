@@ -6,21 +6,16 @@ Defines the set of symbols used in text input to the model.
 # _pad        = '_'
 # _punctuation = ',.!?-'
 # _letters = 'AEINOQUabdefghijkmnoprstuvwyzʃʧ↓↑ '
-
-
 '''# japanese_cleaners2
 _pad        = '_'
 _punctuation = ',.!?-~…'
 _letters = 'AEINOQUabdefghijkmnoprstuvwyzʃʧʦ↓↑ '
 '''
-
-
 '''# korean_cleaners
 _pad        = '_'
 _punctuation = ',.!?…~'
 _letters = 'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㄲㄸㅃㅆㅉㅏㅓㅗㅜㅡㅣㅐㅔ '
 '''
-
 '''# chinese_cleaners
 _pad        = '_'
 _punctuation = '，。！？—…'
@@ -31,20 +26,16 @@ _letters = 'ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙㄚ�
 # _pad        = '_'
 # _punctuation = ',.!?-~…'
 # _letters = 'AEINOQUabdefghijklmnoprstuvwyzʃʧʦɯɹəɥ⁼ʰ`→↓↑ '
-
-
 '''# sanskrit_cleaners
 _pad        = '_'
 _punctuation = '।'
 _letters = 'ँंःअआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऽािीुूृॄेैोौ्ॠॢ '
 '''
-
 '''# cjks_cleaners
 _pad        = '_'
 _punctuation = ',.!?-~…'
 _letters = 'NQabdefghijklmnopstuvwxyzʃʧʥʦɯɹəɥçɸɾβŋɦː⁼ʰ`^#*=→↓↑ '
 '''
-
 '''# thai_cleaners
 _pad        = '_'
 _punctuation = '.!? '
@@ -52,17 +43,14 @@ _letters = 'กขฃคฆงจฉชซฌญฎฏฐฑฒณดตถท�
 '''
 
 # # cjke_cleaners2
-_pad        = '_'
+_pad = '_'
 _punctuation = ',.!?-~…'
 _letters = 'NQabdefghijklmnopstuvwxyzɑæʃʑçɯɪɔɛɹðəɫɥɸʊɾʒθβŋɦ⁼ʰ`^#*=ˈˌ→↓↑ '
-
-
 '''# shanghainese_cleaners
 _pad        = '_'
 _punctuation = ',.!?…'
 _letters = 'abdfghiklmnopstuvyzøŋȵɑɔɕəɤɦɪɿʑʔʰ̩̃ᴀᴇ15678 '
 '''
-
 '''# chinese_dialect_cleaners
 _pad        = '_'
 _punctuation = ',.!?~…─'

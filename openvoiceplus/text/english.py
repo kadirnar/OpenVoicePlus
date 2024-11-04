@@ -1,5 +1,4 @@
 """ from https://github.com/keithito/tacotron """
-
 '''
 Cleaners are transformations that run over the input text at both training and eval time.
 
@@ -12,14 +11,13 @@ hyperparameter. Some cleaners are English-specific. You'll typically want to use
      the symbols in symbols.py to match your data).
 '''
 
-
 # Regular expression matching whitespace:
-
 
 import re
 import inflect
 from unidecode import unidecode
 import eng_to_ipa as ipa
+
 _inflect = inflect.engine()
 _comma_number_re = re.compile(r'([0-9][0-9\,]+[0-9])')
 _decimal_number_re = re.compile(r'([0-9]+\.[0-9]+)')
@@ -50,7 +48,6 @@ _abbreviations = [(re.compile('\\b%s\\.' % x[0], re.IGNORECASE), x[1]) for x in 
     ('ft', 'fort'),
 ]]
 
-
 # List of (ipa, lazy ipa) pairs:
 _lazy_ipa = [(re.compile('%s' % x[0]), x[1]) for x in [
     ('r', 'ɹ'),
@@ -78,11 +75,7 @@ _lazy_ipa2 = [(re.compile('%s' % x[0]), x[1]) for x in [
 ]]
 
 # List of (ipa, ipa2) pairs
-_ipa_to_ipa2 = [(re.compile('%s' % x[0]), x[1]) for x in [
-    ('r', 'ɹ'),
-    ('ʤ', 'dʒ'),
-    ('ʧ', 'tʃ')
-]]
+_ipa_to_ipa2 = [(re.compile('%s' % x[0]), x[1]) for x in [('r', 'ɹ'), ('ʤ', 'dʒ'), ('ʧ', 'tʃ')]]
 
 
 def expand_abbreviations(text):
@@ -113,13 +106,13 @@ def _expand_dollars(m):
     if dollars and cents:
         dollar_unit = 'dollar' if dollars == 1 else 'dollars'
         cent_unit = 'cent' if cents == 1 else 'cents'
-        return '%s %s, %s %s' % (dollars, dollar_unit, cents, cent_unit)
+        return '{} {}, {} {}'.format(dollars, dollar_unit, cents, cent_unit)
     elif dollars:
         dollar_unit = 'dollar' if dollars == 1 else 'dollars'
-        return '%s %s' % (dollars, dollar_unit)
+        return '{} {}'.format(dollars, dollar_unit)
     elif cents:
         cent_unit = 'cent' if cents == 1 else 'cents'
-        return '%s %s' % (cents, cent_unit)
+        return '{} {}'.format(cents, cent_unit)
     else:
         return 'zero dollars'
 
@@ -154,7 +147,7 @@ def normalize_numbers(text):
 
 
 def mark_dark_l(text):
-    return re.sub(r'l([^aeiouæɑɔəɛɪʊ ]*(?: |$))', lambda x: 'ɫ'+x.group(1), text)
+    return re.sub(r'l([^aeiouæɑɔəɛɪʊ ]*(?: |$))', lambda x: 'ɫ' + x.group(1), text)
 
 
 def english_to_ipa(text):
